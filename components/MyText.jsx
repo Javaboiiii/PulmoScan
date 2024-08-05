@@ -4,10 +4,8 @@ import React from 'react'
 const MyText = ({ children }) => {
   return (
       <Text style={{
-        fontWeight: 600, 
-        fontStyle: 'normal', 
         fontSize: 15
-      }}>{children}</Text>
+      }} className='font-semibold text-slate-500'>{children}</Text>
   )
 }
 

@@ -5,52 +5,53 @@ import MyText from '../../components/MyText';
 import React from 'react';
 import { Dropdown } from 'react-native-element-dropdown';
 import MyDropdown from '../../components/MyDropdown';
+import MyButton from '../../components/MyButton';
+import detectDisease from '../../algorithms/algo';
 
 const choice = [
-  {label: 'Yes', value: true},
-  {label: 'No', value: false}
+  { label: 'Yes', value: true },
+  { label: 'No', value: false }
 ]
 const breathLong = [
-  {label: '(a) >= 6 months', value: true},
-  {label: '(b) < 6 months', value: false}
+  { label: '(a) >= 6 months', value: true },
+  { label: '(b) < 6 months', value: false }
 ]
 const peakFlow = [
-  {label: '(a) < 80%', value: true},
-  {label: '(b) >= 80%', value: false}
+  { label: '(a) < 80%', value: true },
+  { label: '(b) >= 80%', value: false }
 ]
 const ageDisease = [
-  {label: '(a) >= 40 years of age', value: true},
-  {label: '(b) < 40 years of age', value: false}
+  { label: '(a) >= 40 years of age', value: true },
+  { label: '(b) < 40 years of age', value: false }
 ]
 
-const disease = [ 
-  {label: '(a)asthma', value: 'asthma'},
-  {label: '(b)allergic rhinitis', value: 'allergic rhinitis'},
-  {label: '(c)eczema', value: 'eczema'},
-  {label: '(d)others', value: 'others'},
+const disease = [
+  { label: '(a)asthma', value: 'asthma' },
+  { label: '(b)allergic rhinitis', value: 'allergic rhinitis' },
+  { label: '(c)eczema', value: 'eczema' },
+  { label: '(d)others', value: 'others' },
 ]
 
 const index = () => {
   const [isFocus, setIsFocus] = React.useState(false);
   const [info, setInfo] = React.useState({
     name: '',
-    isbreath: '', 
-    isbreathlong: '', 
-    isbreathage: '', 
-    iscough: '', 
-    iscoughlong: '', 
-    iscoughage: '', 
-    iscoughexpectoration: '', 
+    isbreath: '',
+    isbreathlong: '',
+    iscough: '',
     agedisease: '',
     isasymptomatic: '',
     dosmoke: '',
     dosmokeyear: '',
     dosmokebiomass: '',
     dosmokeyearduration: '',
-    dorelative: '',
-    disease: '', 
     peakflow: ''
-});
+  });
+
+  const handleSubmit = () => {
+    const result = detectDisease(info)
+    console.log(result)
+  }
 
   const handleInputChange = (key) => (text) => {
     setInfo({ ...info, [key]: text });
@@ -76,7 +77,7 @@ const index = () => {
           change={handleInputChange('isbreath')}
         />
       </View>
-      <View className={`flex-row items-center w-[80%] h-10 ${info.isbreath.value ? 'visible' : 'hidden' }`}>
+      <View className={`flex-row items-center w-[80%] h-10 ${info.isbreath.value ? 'visible' : 'hidden'}`}>
         <MyText className='h-8'>For how Long ? </MyText>
         <MyDropdown
           data={breathLong}
@@ -144,11 +145,11 @@ const index = () => {
           change={handleInputChange('agedisease')}
         />
       </View>
-      
-      <View className={`flex-row items-center w-[80%] h-15 space-x-3 ${info.agedisease.value ? 'visible' : 'hidden' }`}>
+
+      <View className={`flex-row items-center w-[80%] h-15 space-x-3 ${info.agedisease.value ? 'visible' : 'hidden'}`}>
         <MyText className='h-8'>Do you smoke?</MyText>
         <Dropdown
-          className= 'w-[40%]'
+          className='w-[40%]'
           style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
           placeholderStyle={styles.placeholderStyle}
           selectedTextStyle={styles.selectedTextStyle}
@@ -163,9 +164,9 @@ const index = () => {
           searchPlaceholder="Search..."
           onFocus={() => setIsFocus(true)}
           onBlur={() => setIsFocus(false)}
-          onChange={handleInputChange('dosmoke')}/>
+          onChange={handleInputChange('dosmoke')} />
       </View>
-      <View className={`flex-row items-center w-[80%] h-15 space-x-3 ${info.dosmoke.value  ? 'visible' : 'hidden'}`}>
+      <View className={`flex-row items-center w-[80%] h-15 space-x-3 ${info.dosmoke.value ? 'visible' : 'hidden'}`}>
         <MyText className='h-8'>How many pack per year ?</MyText>
         <TextInput
           className='h-8 w-[100%]'
@@ -175,25 +176,12 @@ const index = () => {
           onChangeText={handleInputChange('dosmokeyear')}
         />
       </View>
-      <View className='flex-row items-center w-[55%] h-15 space-x-3'>
+      <View className={`flex-row items-center w-[80%] h-15 space-x-3 ${info.agedisease.value ? 'visible' : 'hidden'}`}>
         <MyText className='h-8'>Were you exposed directly to biomass smoke while cooking food?</MyText>
-        <Dropdown
-          className= 'w-[40%]'
-          style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          inputSearchStyle={styles.inputSearchStyle}
-          iconStyle={styles.iconStyle}
+        <MyDropdown
           data={choice}
-          search
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          placeholder={!isFocus ? 'Select item' : '...'}
-          searchPlaceholder="Search..."
-          onFocus={() => setIsFocus(true)}
-          onBlur={() => setIsFocus(false)}
-          onChange={handleInputChange('dosmokebiomass')}/>
+          change={handleInputChange('dosmokebiomass')}
+        />
       </View>
       <View className={`flex-row items-center w-[80%] h-15 space-x-3 ${info.dosmokebiomass.value ? 'visible' : 'hidden'}`}>
         <MyText className='h-8'>total duration of exposure: </MyText>
@@ -205,27 +193,14 @@ const index = () => {
           onChangeText={handleInputChange('dosmokeyearduration')}
         />
       </View>
-      <View className='flex-row items-center w-[55%] h-15 space-x-3'>
+      <View className={`flex-row items-center w-[80%] h-15 space-x-3 ${info.agedisease.value ? 'visible' : 'hidden'}`}>
         <MyText className='h-8'>Did you have intermittent asymptomatic periods &gt; 7 days?</MyText>
-        <Dropdown
-          className= 'w-[40%]'
-          style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          inputSearchStyle={styles.inputSearchStyle}
-          iconStyle={styles.iconStyle}
+        <MyDropdown
           data={choice}
-          search
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          placeholder={!isFocus ? 'Select item' : '...'}
-          searchPlaceholder="Search..."
-          onFocus={() => setIsFocus(true)}
-          onBlur={() => setIsFocus(false)}
-          onChange={handleInputChange('isasymptomatic')}/>
+          change={handleInputChange('isasymptomatic')}
+        />
       </View>
-      <View className='flex-row items-center w-[55%] h-15 space-x-3'>
+      {/* <View className='flex-row items-center w-[55%] h-15 space-x-3'>
         <MyText className='h-8'>Does anybody in your family (blood relative) have history of atopy?</MyText>
         <MyDropdown
           data={disease}
@@ -235,7 +210,7 @@ const index = () => {
       <View className={`flex-row items-center w-[80%] h-15 space-x-3 ${info.dorelative.value ? 'visible' : 'hidden'}`}>
         <MyText className='h-8'>total duration of exposure: </MyText>
         <Dropdown
-          className= 'w-[40%]'
+          className='w-[40%]'
           style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
           placeholderStyle={styles.placeholderStyle}
           selectedTextStyle={styles.selectedTextStyle}
@@ -250,7 +225,17 @@ const index = () => {
           searchPlaceholder="Search..."
           onFocus={() => setIsFocus(true)}
           onBlur={() => setIsFocus(false)}
-          onChange={handleInputChange('disease')}/>
+          onChange={handleInputChange('disease')} />
+      </View> */}
+      <View className='flex-1 items-center'>
+        <MyButton
+          title='Get Result'
+          color='#00f2f2'
+          onPress={handleSubmit}
+        />
+      </View>
+      <View>
+        <Text id='result'>Result = {detectDisease(info)}</Text>
       </View>
     </ScrollView>
   )

@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "my-app",
+    "name": "PulmoScan",
     "slug": "my-app",
     "version": "1.0.0",
     "scheme": "your-app-scheme",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon.jpg",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",

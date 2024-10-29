@@ -1,314 +1,852 @@
-import { Text, View, TextInput, ScrollView, StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import MyText from '../components/MyText';
-import React from 'react';
+import { Text, View, TextInput, Modal, StyleSheet, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Dropdown } from 'react-native-element-dropdown';
-import MyDropdown from '../components/MyDropdown';
+import React from 'react';
+import MyText from '../components/MyText';
 import MyButton from '../components/MyButton';
 import detectDisease from '../algorithms/algo';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { firebase } from '../config';
 
 const choice = [
-  { label: 'Yes', value: true },
-  { label: 'No', value: false }
-]
+    { label: 'Yes', value: true },
+    { label: 'No', value: false }
+];
+
+const gender = [
+    { label: 'Male', value: 'male' },
+    { label: 'Female', value: 'female' },
+    { label: 'Other', value: 'Other' }
+];
+
 const breathLong = [
-  { label: '(a) >= 6 months', value: true },
-  { label: '(b) < 6 months', value: false }
-]
+    { label: '>= 6 months', value: true },
+    { label: '< 6 months', value: false }
+];
 const peakFlow = [
-  { label: '(a) < 80%', value: true },
-  { label: '(b) >= 80%', value: false }
-]
+    { label: '(a) < 80%', value: true },
+    { label: '(b) >= 80%', value: false }
+];
 const ageDisease = [
-  { label: '(a) >= 40 years of age', value: true },
-  { label: '(b) < 40 years of age', value: false }
-]
+    { label: '>= 40 years of age', value: true },
+    { label: '< 40 years of age', value: false }
+];
 
 const disease = [
-  { label: '(a)asthma', value: 'asthma' },
-  { label: '(b)allergic rhinitis', value: 'allergic rhinitis' },
-  { label: '(c)eczema', value: 'eczema' },
-  { label: '(d)others', value: 'others' },
+    { label: 'asthma', value: 'asthma' },
+    { label: 'allergic rhinitis', value: 'allergic rhinitis' },
+    { label: 'eczema', value: 'eczema' },
+    { label: 'others', value: 'others' },
+    { label: 'none', value: 'none' },
 ]
 
-const index = () => {
-  const [isFocus, setIsFocus] = React.useState(false);
-  const [show, setShow] = React.useState(false);
-  const [info, setInfo] = React.useState({
-    name: '',
-    isbreath: '',
-    isbreathlong: '',
-    iscough: '',
-    agedisease: '',
-    isasymptomatic: '',
-    dosmoke: '',
-    dosmokeyear: '',
-    dosmokebiomass: '',
-    dosmokeyearduration: '',
-    peakflow: ''
-  });
+const Index = () => {
+    const [currentStep, setCurrentStep] = React.useState(1);
+    const [show, setShow] = React.useState(false);
+    const [error, setError] = React.useState('');
+    const [isFocus, setIsFocus] = React.useState(false);
+    const [modalVisible, setModalVisible] = React.useState(false);
 
-  const handleSubmit = () => {
-    const result = detectDisease(info)
-    console.log(result)
-    !show ? setShow(true) : setShow(false)
-  }
+    const [info, setInfo] = React.useState({
+        name: '',
+        gender: '',
+        age: '',
+        height: '',
+        isbreath: '',
+        isbreathlong: '',
+        breathlessAge: '',
+        iscough: '',
+        isExpectoration: '',
+        peakflow: '',
+        pef: '',
+        pefPercentage: '',
+        agedisease: '',
+        isasymptomatic: '',
+        dosmoke: '',
+        dosmokeyear: '',
+        dosmokebiomass: '',
+        dosmokeyearduration: '',
+        dorelative: '',
+    });
 
-  const handleReset = () => {
-    setInfo({
-      name: '',
-      isbreath: '',
-      isbreathlong: '',
-      iscough: '',
-      agedisease: '',
-      isasymptomatic: '',
-      dosmoke: '',
-      dosmokeyear: '',
-      dosmokebiomass: '',
-      dosmokeyearduration: '',
-      peakflow: ''
-    })
-  }
+    const handleInputChange = (key) => (text) => {
+        setInfo({ ...info, [key]: text });
 
-  const handleInputChange = (key) => (text) => {
-    setInfo({ ...info, [key]: text });
-  };
+    };
 
-  console.log(info);
-  return (
-    <SafeAreaView>
-      <ScrollView className='ml-5 space-y-5'>
-        <View className='flex-row items-center w-[80%] h-10'>
-          <MyText className='h-8'>Enter your Name : </MyText>
-          <TextInput
-            className='h-8 w-[100%]'
-            inputMode='text'
-            cursorColor='#786452'
-            placeholder='Name input'
-            onChangeText={handleInputChange('name')}
-          />
-        </View>
-        <View className='flex-row items-center w-[80%] h-10'>
-          <MyText className='h-8'>Do you have Breathlessness ?  </MyText>
-          <MyDropdown
-            data={choice}
-            change={handleInputChange('isbreath')}
-          />
-        </View>
-        <View className={`flex-row items-center w-[80%] h-10 ${info.isbreath.value ? 'visible' : 'hidden'}`}>
-          <MyText className='h-8'>For how Long ? </MyText>
-          <MyDropdown
-            data={breathLong}
-            change={handleInputChange('isbreathlong')}
-          />
-        </View>
-        {/* <View className={`flex-row items-center w-[80%] h-10 ${info.isbreath.value == 'Yes' ? 'visible' : 'hidden' }`}>
-        <MyText className='h-8'>From what Age ? </MyText>
-        <TextInput
-          className='h-8 w-[100%]'
-          inputMode='numeric'
-          cursorColor='#786452'
-          placeholder='Age'
-          onChangeText={handleInputChange('isbreathage')}
-        />
-      </View> */}
-        <View className={`flex-row items-center w-[80%] h-10 ${info.isbreathlong.value ? 'visible' : 'hidden'}`}>
-          <MyText className='h-8'>Do you have cough ?  </MyText>
-          <MyDropdown
-            data={choice}
-            change={handleInputChange('iscough')}
-          />
-        </View>
-        {/* <View className={`flex-row items-center w-[80%] h-10 ${info.iscough.value == 'Yes' ? 'visible' : 'hidden' }`}>
-        <MyText className='h-8'>For how Long ? </MyText>
-        <TextInput
-          className='h-8 w-[100%]'
-          inputMode='numeric'
-          cursorColor='#786452'
-          placeholder='(in months)'
-          onChangeText={handleInputChange('iscoughlong')}
-        />
-      </View>
-      <View className={`flex-row items-center w-[80%] h-10 ${info.iscough.value == 'Yes' ? 'visible' : 'hidden' }`}>
-        <MyText className='h-8'>From what Age ? </MyText>
-        <TextInput
-          className='h-8 w-[100%]'
-          inputMode='numeric'
-          cursorColor='#786452'
-          placeholder='Age'
-          onChangeText={handleInputChange('iscoughage')}
-        />
-      </View> 
-      <View className={`flex-row items-center w-[80%] h-10 ${info.iscough.value == 'Yes' ? 'visible' : 'hidden' }`}>
-        <MyText className='h-8'>From what Age ? </MyText>
-        <TextInput
-          className='h-8 w-[100%]'
-          inputMode='text'
-          cursorColor='#786452'
-          placeholder='Yes/No(strictly)'
-          onChangeText={handleInputChange('iscoughexpectoration')}
-        />
-      </View> */}
-        <View className={`flex-row items-center w-[80%] h-15 space-x-3 ${info.iscough.value ? 'visible' : 'hidden'}`}>
-          <MyText className='h-8'>PeakFlow meter Value </MyText>
-          <MyDropdown
-            data={peakFlow}
-            change={handleInputChange('peakflow')}
-          />
-        </View>
-        <View className={`flex-row items-center w-[55%] h-15 space-x-3 ${info.peakflow.value ? 'visible' : 'hidden'}`}>
-          <MyText className='h-8'>Age of onset of symptomss?(Consider the earliest age)</MyText>
-          <MyDropdown
-            data={ageDisease}
-            change={handleInputChange('agedisease')}
-          />
-        </View>
+    const handleSubmit = () => {
+        const result = detectDisease(info);
+        console.log(result);
+        !show ? setShow(true) : setShow(false);
 
-        <View className={`flex-row items-center w-[80%] h-15 space-x-3 ${info.agedisease.value ? 'visible' : 'hidden'}`}>
-          <MyText className='h-8'>Do you smoke?</MyText>
-          <Dropdown
-            className='w-[40%]'
-            style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
-            placeholderStyle={styles.placeholderStyle}
-            selectedTextStyle={styles.selectedTextStyle}
-            inputSearchStyle={styles.inputSearchStyle}
-            iconStyle={styles.iconStyle}
-            data={choice}
-            search
-            maxHeight={300}
-            labelField="label"
-            valueField="value"
-            placeholder={!isFocus ? 'Select item' : '...'}
-            searchPlaceholder="Search..."
-            onFocus={() => setIsFocus(true)}
-            onBlur={() => setIsFocus(false)}
-            onChange={handleInputChange('dosmoke')} />
-        </View>
-        <View className={`flex-row items-center w-[80%] h-15 space-x-3 ${info.dosmoke.value ? 'visible' : 'hidden'}`}>
-          <MyText className='h-8'>How many pack per year ?</MyText>
-          <TextInput
-            className='h-8 w-[100%]'
-            inputMode='numeric'
-            cursorColor='#786452'
-            placeholder='Packs per year'
-            onChangeText={handleInputChange('dosmokeyear')}
-          />
-        </View>
-        {/* <View className={`flex-row items-center w-[80%] h-15 space-x-3 ${info.dosmoke.value ? 'visible' : 'hidden'}`}>
-        <MyText className='h-8'>Were you exposed directly to biomass smoke while cooking food?</MyText>
-        <MyDropdown
-          data={choice}
-          change={handleInputChange('dosmokebiomass')}
-        />
-      </View> */}
-        <View className={`flex-row items-center w-[80%] h-15 space-x-3 ${info.dosmoke.value ? 'visible' : 'hidden'}`}>
-          <MyText className='h-8'>total duration of exposure: </MyText>
-          <TextInput
-            className='h-8 w-[100%]'
-            inputMode='numeric'
-            cursorColor='#786452'
-            placeholder='Duration(in years)'
-            onChangeText={handleInputChange('dosmokeyearduration')}
-          />
-        </View>
-        <View className={`flex-row items-center w-[80%] h-15 space-x-3 ${(parseInt(info.dosmokeyear) >= 10) || (parseInt(info.dosmokeyear) < 10 && parseInt(info.dosmokeyearduration) >= 20) ? 'visible' : 'hidden'}`}>
-          <MyText className='h-8'>Did you have intermittent asymptomatic periods &gt; 7 days?</MyText>
-          <MyDropdown
-            data={choice}
-            change={handleInputChange('isasymptomatic')}
-          />
-        </View>
-        {/* <View className='flex-row items-center w-[55%] h-15 space-x-3'>
-        <MyText className='h-8'>Does anybody in your family (blood relative) have history of atopy?</MyText>
-        <MyDropdown
-          data={disease}
-          change={handleInputChange('dorelative')}
-        />
-      </View>
-      <View className={`flex-row items-center w-[80%] h-15 space-x-3 ${info.dorelative.value ? 'visible' : 'hidden'}`}>
-        <MyText className='h-8'>total duration of exposure: </MyText>
-        <Dropdown
-          className='w-[40%]'
-          style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          inputSearchStyle={styles.inputSearchStyle}
-          iconStyle={styles.iconStyle}
-          data={disease}
-          search
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          placeholder={!isFocus ? 'Select item' : '...'}
-          searchPlaceholder="Search..."
-          onFocus={() => setIsFocus(true)}
-          onBlur={() => setIsFocus(false)}
-          onChange={handleInputChange('disease')} />
-      </View> */}
-        <View className='flex-row space-x-2 items-center justify-center'>
-          <View>
-            <MyButton
-              title={`${show ? 'Hide Result' : 'Get Result'}`}
-              color='#00f2f2'
-              onPress={handleSubmit}
-            />
-          </View>
-          <View>
-            <MyButton
-              title='Reset'
-              color='#00f2f2'
-              onPress={handleReset}
-            />
-          </View>
-        </View>
-        <View>
-          <Text className={`${show ? 'visible' : 'hidden'}`} id='result'>Result = {show ? detectDisease(info) : ''}</Text>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  )
-}
+        const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+        const data = {
+            createdAt: timestamp,
+            ...info,
+            diseaseDetected: result,
+        };
+
+        // Save the data to Firebase
+        firebase.firestore().collection('userData')
+            .add(data)
+            .then(() => {
+                console.log('Data saved successfully:', data);
+            })
+            .catch((error) => {
+                console.error('Error saving data:', error);
+                setError('Error saving data to the database.');
+                setModalVisible(true); // Show error in the modal
+            });
+    };
+
+    const isEmpty = (value) => value === null || value === undefined || value === '';
+
+    const handleContinue = () => {
+        let newError = '';
+
+        // Validation based on current step
+        if (currentStep === 1) {
+            if (isEmpty(info.name) || isEmpty(info.gender) || isEmpty(info.height)) {
+                newError = 'Please fill out all fields.';
+            }
+        } else if (currentStep === 2) {
+            if (isEmpty(info.isbreath)) {
+                newError = 'Please answer the question.';
+            } else if (info.isbreath === true && (isEmpty(info.isbreathlong) || isEmpty(info.breathlessAge))) {
+                newError = 'Please answer all questions.';
+            }
+        } else if (currentStep === 3) {
+            if (isEmpty(info.iscough)) {
+                newError = 'Please answer the question.';
+            } else if (info.iscough === true && isEmpty(info.isExpectoration)) {
+                newError = 'Please answer all questions.';
+            }
+        } else if (currentStep === 4) {
+            new Promise(resolve => setTimeout(resolve, 2000)) // 2 seconds delay
+                .then(() => {
+                    if (isEmpty(info.peakflow)) {
+                        newError = 'Please fill the peak flow meter reading.';
+                    }
+                    // Code to transition to step 5 goes here
+                });
+
+        } else if (currentStep === 6) {
+            if (isEmpty(info.agedisease) || isEmpty(info.dosmoke)) {
+                newError = 'Please answer all questions.';
+            } else if (info.dosmoke === true && isEmpty(info.dosmokeyear)) {
+                newError = 'Please answer all questions.';
+            }
+        } else if (currentStep === 7) {
+            if (isEmpty(info.dosmokebiomass)) {
+                newError = 'Please answer the question.';
+            } else if (info.dosmokebiomass === true && isEmpty(info.dosmokeyearduration)) {
+                newError = 'Please write duration of exposure to biomass.';
+            }
+        } else if (currentStep === 8) {
+            if (info.gender === 'Female' && isEmpty(info.isasymptomatic)) {
+                newError = 'Please answer all questions.';
+            }
+            if (isEmpty(info.dorelative)) {
+                newError = 'Please answer the question.';
+            }
+        }
+
+        if (newError) {
+            setError(newError);
+            setModalVisible(true);
+        } else {
+            setError('');
+            setCurrentStep(currentStep + 1);
+        }
+    };
+
+    const handlePrev = () => {
+        setCurrentStep(currentStep - 1);
+    };
+
+    const handleReset = () => {
+        setInfo({
+            name: '',
+            gender: '',
+            age: '',
+            height: '',
+            isbreath: '',
+            isbreathlong: '',
+            breathlessAge: '',
+            iscough: '',
+            isExpectoration: '',
+            peakflow: '',
+            pef: '',
+            pefPercentage: '',
+            agedisease: '',
+            isasymptomatic: '',
+            dosmoke: '',
+            dosmokeyear: '',
+            dosmokebiomass: '',
+            dosmokeyearduration: '',
+            dorelative: '',
+        });
+        setCurrentStep(1);
+    };
+
+    const calculatePEF = () => {
+        const ageNum = parseFloat(info.age);
+        const heightNum = parseFloat(info.height);
+
+        let pefVal = 0;
+        if (info.gender === 'male') {
+            pefVal = -1.807 * ageNum + 3.206 * heightNum;
+        } else if (info.gender === 'female') {
+            pefVal = -1.454 * ageNum + 2.368 * heightNum;
+        }
+        pefVal = pefVal.toFixed(2);
+        setInfo({ ...info, pef: pefVal });
+        return info.pef;
+    };
+
+    // Function to calculate percentage of the PEF
+    const calculatePercentage = (pef) => {
+        const peakFlowNum = parseFloat(info.peakflow);
+        if (pef && peakFlowNum) {
+            let percentage = (peakFlowNum / pef) * 100;
+            percentage = percentage.toFixed(2);
+            setInfo({ ...info, pefPercentage: percentage });
+        }
+    };
+
+    const handleCalculate = () => {
+        calculatePEF();
+        calculatePercentage(info.pef);
+    };
+
+    return (
+        <SafeAreaView>
+            {/* Header */}
+            <View style={styles.headerContainer}>
+                <Image source={require('../assets/icon.png')} style={styles.logo} />
+                <Image source={require('../assets/appName.png')} style={styles.logoName} />
+            </View>
+
+            {/* Error Modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                    setModalVisible(!modalVisible);
+                }}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalText}>{error}</Text>
+                        <MyButton
+                            title="OK"
+                            onPress={() => {
+                                setModalVisible(!modalVisible);
+                            }}
+                        />
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Step 1: Name, Gender, Height */}
+            {currentStep === 1 && (
+                <View style={styles.formContainer}>
+                    <View style={styles.inputRow}>
+                        <MyText>Name:    </MyText>
+                        <TextInput
+                            style={styles.inputField}
+                            inputMode="text"
+                            cursorColor="#786452"
+                            placeholder="Enter your name here"
+                            value={info.name}
+                            onChangeText={handleInputChange('name')}
+                        />
+                    </View>
+                    <View style={styles.inputRow}>
+                        <MyText>Gender:   </MyText>
+                        <Dropdown
+                            style={[styles.dropdown, isFocus && { borderColor: 'gray' }]}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            inputSearchStyle={styles.inputSearchStyle}
+                            iconStyle={styles.iconStyle}
+                            data={gender}
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder={!isFocus ? 'Select' : '...'}
+                            value={info.gender}
+                            onFocus={() => setIsFocus(true)}
+                            onBlur={() => setIsFocus(false)}
+                            onChange={item => {
+                                handleInputChange('gender')(item.value); // Update state with selected value
+                            }}
+                        />
+                    </View>
+                    <View style={styles.inputRow}>
+                        <MyText>Age:   </MyText>
+                        <TextInput
+                            style={styles.inputField}
+                            inputMode="numeric"
+                            cursorColor="#786452"
+                            value={info.age}
+                            placeholder="Enter your age (in yrs)"
+                            onChangeText={(text) => {
+                                const numericValue = text.replace(/[^0-9.]/g, '');
+                                const validValue = numericValue.split('.').length > 2
+                                    ? numericValue.substring(0, numericValue.lastIndexOf('.'))
+                                    : numericValue;
+
+                                handleInputChange('age')(validValue);
+                            }}
+                        />
+                    </View>
+                    <View style={styles.inputRow}>
+                        <MyText>Height:   </MyText>
+                        <TextInput
+                            style={styles.inputField}
+                            inputMode="numeric"
+                            cursorColor="#786452"
+                            value={info.height}
+                            placeholder="Enter your height (in cm)"
+                            onChangeText={(text) => {
+                                const numericValue = text.replace(/[^0-9.]/g, '');
+                                const validValue = numericValue.split('.').length > 2
+                                    ? numericValue.substring(0, numericValue.lastIndexOf('.'))
+                                    : numericValue;
+
+                                handleInputChange('height')(validValue);
+                            }}
+                        />
+                    </View>
+                    <MyButton title="Continue" onPress={handleContinue} />
+                </View>
+            )}
+
+            {/* Step 2: Breathlessness, Long Breath */}
+            {currentStep === 2 && (
+                <View style={styles.formContainer}>
+                    <View style={styles.inputRow}>
+                        <MyText>Do you have Breathlessness?     </MyText>
+                        <Dropdown
+                            style={[styles.dropdown, isFocus && { borderColor: 'gray' }]}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            inputSearchStyle={styles.inputSearchStyle}
+                            iconStyle={styles.iconStyle}
+                            data={choice}
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder={!isFocus ? 'Select' : '...'}
+                            value={info.isbreath}
+                            onFocus={() => setIsFocus(true)}
+                            onBlur={() => setIsFocus(false)}
+                            onChange={item => {
+                                handleInputChange('isbreath')(item.value); // Update state with selected value
+                            }}
+                        />
+                    </View>
+                    {info.isbreath === true && (
+                        <>
+                            <View style={styles.inputRow}>
+                                <MyText>For how long?     </MyText>
+                                <Dropdown
+                                    style={[styles.dropdown, isFocus && { borderColor: 'gray' }]}
+                                    placeholderStyle={styles.placeholderStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
+                                    inputSearchStyle={styles.inputSearchStyle}
+                                    iconStyle={styles.iconStyle}
+                                    data={breathLong}
+                                    maxHeight={300}
+                                    labelField="label"
+                                    valueField="value"
+                                    placeholder={!isFocus ? 'Select' : '...'}
+                                    value={info.isbreathlong}
+                                    onFocus={() => setIsFocus(true)}
+                                    onBlur={() => setIsFocus(false)}
+                                    onChange={item => {
+                                        handleInputChange('isbreathlong')(item.value); // Update state with selected value
+                                    }}
+                                />
+                            </View>
+                            <View style={styles.inputRow}>
+                                <MyText>From what age?     </MyText>
+                                <TextInput
+                                    style={styles.sInputField}
+                                    inputMode="numeric"
+                                    cursorColor="#786452"
+                                    value={info.breathlessAge}
+                                    placeholder="Age in years"
+                                    onChangeText={handleInputChange('breathlessAge')}
+                                />
+                            </View>
+                        </>
+                    )}
+                    <MyButton title="Continue" onPress={handleContinue} />
+                    <MyButton title="Previous" onPress={handlePrev} />
+                </View>
+            )}
+
+            {/* Step 3: Cough */}
+            {currentStep === 3 && (
+                <View style={styles.formContainer}>
+                    <View style={styles.inputRow}>
+                        <MyText>Do you have a Cough?    </MyText>
+                        <Dropdown
+                            style={[styles.dropdown, isFocus && { borderColor: 'gray' }]}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            inputSearchStyle={styles.inputSearchStyle}
+                            iconStyle={styles.iconStyle}
+                            data={choice}
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder={!isFocus ? 'Select' : '...'}
+                            value={info.iscough}
+                            onFocus={() => setIsFocus(true)}
+                            onBlur={() => setIsFocus(false)}
+                            onChange={item => {
+                                handleInputChange('iscough')(item.value);
+                            }}
+                        />
+                    </View>
+                    {info.iscough === true && (
+                        <>
+                            <View style={styles.inputRow}>
+                                <MyText>Does your cough have expectoration(mucus/phlegm)?   </MyText>
+                                <Dropdown
+                                    style={[styles.dropdown, isFocus && { borderColor: 'gray' }]}
+                                    placeholderStyle={styles.placeholderStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
+                                    inputSearchStyle={styles.inputSearchStyle}
+                                    iconStyle={styles.iconStyle}
+                                    data={choice}
+                                    maxHeight={300}
+                                    labelField="label"
+                                    valueField="value"
+                                    placeholder={!isFocus ? 'Select' : '...'}
+                                    value={info.isExpectoration}
+                                    onFocus={() => setIsFocus(true)}
+                                    onBlur={() => setIsFocus(false)}
+                                    onChange={item => {
+                                        handleInputChange('isExpectoration')(item.value);
+                                    }}
+                                />
+                            </View>
+                        </>
+                    )}
+                    <MyButton title="Continue" color="#00f2f2" onPress={handleContinue} />
+                    <MyButton title="Previous" color="#00f2f2" onPress={handlePrev} />
+                </View>
+            )}
+
+            {/* Step 4: PeakFlow meter reading */}
+            {currentStep === 4 && (
+                <View style={styles.formContainer}>
+                    <Text style={styles.headerText}>Peak Flow Meter Reading</Text>
+                    <TextInput
+                        style={styles.peakIn}
+                        inputMode='numeric'
+                        cursorColor='#786452'
+                        value={info.peakflow}
+                        onChangeText={(text) => {
+                            const numericValue = text.replace(/[^0-9.]/g, '');
+                            const validValue = numericValue.split('.').length > 2
+                                ? numericValue.substring(0, numericValue.lastIndexOf('.'))
+                                : numericValue;
+
+                            handleInputChange('peakflow')(validValue);
+                        }}
+                    />
+                    <MyButton title="Calculate PEF percentage" color="#00f2f2" onPress={() => {
+                        handleCalculate();
+                        handleContinue();
+                    }} />
+                    <MyButton title="Previous" color="#00f2f2" onPress={handlePrev} />
+                </View>
+            )}
+
+            {/* To display PEF percentage */}
+            {currentStep === 5 && (
+                <View style={styles.formContainer}>
+                    <View style={{ marginBottom: 25 }}>
+                        <View>
+                            <Text style={styles.subheaderText}>Your PEF is:</Text>
+                            <Text style={styles.headerText}>{info.pef || 'N/A'}</Text>
+                        </View>
+                    </View>
+                    <View style={{ marginBottom: 25 }}>
+                        <View>
+                            <Text style={styles.subheaderText}>Your PEF percentage:</Text>
+                            <Text style={styles.headerText}>{info.pefPercentage ? `${info.pefPercentage}%` : 'N/A'}</Text>
+                        </View>
+                    </View>
+                    <MyButton title="Continue" color="#00f2f2" onPress={handleContinue} />
+                    <MyButton title="Previous" color="#00f2f2" onPress={handlePrev} />
+                </View>
+            )}
+
+            {/* Age of Disease Onset, Smoking */}
+            {currentStep === 6 && (
+                <View style={styles.formContainer}>
+                    <View style={styles.inputRow}>
+                        <MyText>Age of onset of symptoms?(Consider the earliest age)        </MyText>
+                        <Dropdown
+                            style={[styles.dropdown, isFocus && { borderColor: 'gray' }]}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            inputSearchStyle={styles.inputSearchStyle}
+                            iconStyle={styles.iconStyle}
+                            data={ageDisease}
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder={!isFocus ? 'Select' : '...'}
+                            value={info.agedisease}
+                            onFocus={() => setIsFocus(true)}
+                            onBlur={() => setIsFocus(false)}
+                            onChange={item => {
+                                handleInputChange('agedisease')(item.value); // Update state with selected value
+                            }}
+                        />
+                    </View>
+                    <View style={styles.inputRow}>
+                        <MyText>Do you smoke?       </MyText>
+                        <Dropdown
+                            style={[styles.dropdown, isFocus && { borderColor: 'gray' }]}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            inputSearchStyle={styles.inputSearchStyle}
+                            iconStyle={styles.iconStyle}
+                            data={choice}
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder={!isFocus ? 'Select' : '...'}
+                            value={info.dosmoke}
+                            onFocus={() => setIsFocus(true)}
+                            onBlur={() => setIsFocus(false)}
+                            onChange={item => {
+                                handleInputChange('dosmoke')(item.value); // Update state with selected value
+                            }}
+                        />
+                    </View>
+                    {info.dosmoke === true && (
+                        <>
+                            <View style={styles.inputRow}>
+                                <MyText className='h-8'>How many packs per year?     </MyText>
+                                <TextInput
+                                    style={styles.numInput}
+                                    inputMode='numeric'
+                                    cursorColor='#786452'
+                                    value={info.dosmokeyear}
+                                    onChangeText={(text) => {
+                                        const numericValue = text.replace(/[^0-9.]/g, '');
+                                        const validValue = numericValue.split('.').length > 2
+                                            ? numericValue.substring(0, numericValue.lastIndexOf('.'))
+                                            : numericValue;
+
+                                        handleInputChange('dosmokeyear')(validValue);
+                                    }}
+                                />
+                            </View>
+                        </>
+                    )}
+                    <MyButton title="Continue" color="#00f2f2" onPress={handleContinue} />
+                    <MyButton title="Previous" color="#00f2f2" onPress={handlePrev} />
+                </View>
+            )}
+
+            {currentStep === 7 && (
+                <View style={styles.formContainer}>
+                    <View style={styles.inputRow}>
+                        <MyText>Were you exposed to biomass smoke while cooking?    </MyText>
+                        <Dropdown
+                            style={[styles.dropdown, isFocus && { borderColor: 'gray' }]}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            inputSearchStyle={styles.inputSearchStyle}
+                            iconStyle={styles.iconStyle}
+                            data={choice}
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder={!isFocus ? 'Select' : '...'}
+                            value={info.dosmokebiomass}
+                            onFocus={() => setIsFocus(true)}
+                            onBlur={() => setIsFocus(false)}
+                            onChange={item => {
+                                handleInputChange('dosmokebiomass')(item.value); // Update state with selected value
+                            }}
+                        />
+                    </View>
+                    {info.dosmokebiomass === true && (
+                        <>
+                            <View style={styles.inputRow}>
+                                <MyText>Total duration of exposure:     </MyText>
+                                <TextInput
+                                    style={styles.numInput}
+                                    inputMode='numeric'
+                                    cursorColor='#786452'
+                                    value={info.dosmokeyearduration}
+                                    onChangeText={handleInputChange('dosmokeyearduration')}
+                                />
+                            </View>
+                        </>
+                    )}
+                    <MyButton title="Continue" color="#00f2f2" onPress={handleContinue} />
+                    <MyButton title="Previous" color="#00f2f2" onPress={handlePrev} />
+                </View>
+            )}
+
+            {currentStep === 8 && (
+                <View style={styles.formContainer}>
+                    {info.gender === 'female' && (
+                        <>
+                            <View style={styles.inputRow}>
+                                <MyText>Do you get asymptomatic periods(i.e.&gt; 7 days)?               </MyText>
+                                <Dropdown
+                                    style={[styles.dropdown, isFocus && { borderColor: 'gray' }]}
+                                    placeholderStyle={styles.placeholderStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
+                                    inputSearchStyle={styles.inputSearchStyle}
+                                    iconStyle={styles.iconStyle}
+                                    data={choice}
+                                    maxHeight={300}
+                                    labelField="label"
+                                    valueField="value"
+                                    placeholder={!isFocus ? 'Select' : '...'}
+                                    value={info.isasymptomatic}
+                                    onFocus={() => setIsFocus(true)}
+                                    onBlur={() => setIsFocus(false)}
+                                    onChange={item => {
+                                        handleInputChange('isasymptomatic')(item.value); // Update state with selected value
+                                    }}
+                                />
+                            </View>
+                        </>
+                    )}
+                    <View style={styles.inputRow}>
+                        <MyText>Does anyone in your family have history of atopy?</MyText>
+                        <Dropdown
+                            style={[styles.dropdown, isFocus && { borderColor: 'gray' }]}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            inputSearchStyle={styles.inputSearchStyle}
+                            iconStyle={styles.iconStyle}
+                            data={disease}
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder={!isFocus ? 'Select' : '...'}
+                            value={info.dorelative}
+                            onFocus={() => setIsFocus(true)}
+                            onBlur={() => setIsFocus(false)}
+                            onChange={item => {
+                                handleInputChange('dorelative')(item.value); // Update state with selected value
+                            }}
+                        />
+                    </View>
+                    <MyButton title="Get Result" color="#00f2f2" onPress={() => {
+                        handleSubmit();
+                        handleContinue();
+                    }} />
+                    <MyButton title="Previous" color="#00f2f2" onPress={handlePrev} />
+                </View>
+            )}
+
+            {/* Final: Show Result */}
+            {currentStep === 9 && (
+                <View style={styles.formContainer}>
+                    <View className="flex-row space-x-2 items-center justify-center">
+                        {show && <Text id="result" style={styles.result}>Result = {detectDisease(info)}</Text>}
+                        <MyButton title="Reset" color="#00f2f2" onPress={handleReset} />
+                    </View>
+                </View>
+            )}
+        </SafeAreaView>
+    );
+};
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: 'white',
-    padding: 16,
-  },
-  dropdown: {
-    height: 50,
-    borderColor: 'gray',
-    borderWidth: 0.5,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-  },
-  icon: {
-    marginRight: 5,
-  },
-  label: {
-    position: 'absolute',
-    backgroundColor: 'white',
-    left: 22,
-    top: 8,
-    zIndex: 999,
-    paddingHorizontal: 8,
-    fontSize: 14,
-  },
-  placeholderStyle: {
-    fontSize: 16,
-  },
-  selectedTextStyle: {
-    fontSize: 16,
-  },
-  iconStyle: {
-    width: 20,
-    height: 20,
-  },
-  inputSearchStyle: {
-    height: 40,
-    fontSize: 16,
-  },
+    container: {
+        flex: 1, // Ensures the view takes full screen height
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        padding: 16,
+    },
+    formContainer: {
+        width: '90%',
+        padding: 20,
+        borderColor: '#786452',
+        borderWidth: 2,
+        borderRadius: 10,
+        backgroundColor: '#f9f9f9',
+        alignItems: 'justify',
+        margin: 20,
+        marginVertical: '60%',
+    },
+    inputRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 10,
+        width: '80%',
+        height: 50,
+    },
+    headerText: {
+        alignSelf: 'center',
+        fontSize: 25,
+        fontWeight: '800',
+        fontStyle: 'italic'
+    },
+    subheaderText: {
+        alignSelf: 'center',
+        fontSize: 20,
+        fontWeight: '700',
+        fontStyle: 'italic'
+    },
+    inputField: {
+        width: '100%',
+        height: 40,
+        borderColor: '#786452',
+        borderWidth: 1,
+        paddingHorizontal: 8,
+        borderRadius: 5,
+    },
+    sInputField: {
+        width: '100%',
+        flex: 2,
+        height: 40,
+        borderColor: '#786452',
+        borderWidth: 1,
+        paddingHorizontal: 8,
+        borderRadius: 5,
+    },
+    numInput: {
+        height: 40,
+        width: 55,
+        borderColor: '#786452',
+        borderWidth: 1,
+        paddingHorizontal: 8,
+        borderRadius: 5,
+        marginVertical: 10,
+        //textAlign: 'center',
+    },
+    peakIn: {
+        height: 40,
+        width: '50%',
+        alignSelf: 'center',
+        borderColor: '#786452',
+        borderWidth: 1,
+        borderRadius: 5,
+        marginVertical: 25,
+        textAlign: 'center',
+        letterSpacing: 4,
+    },
+    result: {
+        fontSize: 19,
+        fontWeight: 'bold',
+        fontStyle: 'italic',
+        color: '#000',
+        textAlign: 'center',
+        marginVertical: 30,
+    },
+    errorText: {
+        color: 'red',
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        width: '80%',
+        padding: 20,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    modalText: {
+        marginBottom: 15,
+        textAlign: 'center',
+        fontSize: 18,
+    },
+    // dropdown
+    dropdown: {
+        height: 40,
+        borderColor: '#786452',
+        borderWidth: 1,
+        borderRadius: 8,
+        width: 100,
+        paddingHorizontal: 5,
+    },
+    icon: {
+        marginRight: 0,
+    },
+    label: {
+        position: 'absolute',
+        backgroundColor: 'white',
+        left: 22,
+        top: 8,
+        zIndex: 999,
+        paddingHorizontal: 8,
+        fontSize: 14,
+    },
+    placeholderStyle: {
+        fontSize: 16,
+    },
+    selectedTextStyle: {
+        fontSize: 16,
+    },
+    iconStyle: {
+        width: 20,
+        height: 20,
+    },
+    inputSearchStyle: {
+        height: 40,
+        fontSize: 16,
+    },
+    // Header
+    headerContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'left',
+        paddingHorizontal: 15,
+        paddingTop: 40,
+        paddingBottom: 15,
+        borderRadius: 15,
+        backgroundColor: '#f2f2f2',
+        zIndex: 1,
+        // shadow
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 3,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.5,
+        elevation: 5,
+    },
+    logo: {
+        width: 50,
+        height: 50,
+        resizeMode: 'contain',
+    },
+    logoName: {
+        width: 200,
+        height: 50,
+        resizeMode: 'contain',
+    },
 });
 
-export default index
+export default Index;
